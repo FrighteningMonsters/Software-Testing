@@ -21,9 +21,9 @@ public class GeoService {
      * @param p the position to validate
      * @return true if position is valid, false otherwise
      */
-    private Boolean validPosition(Position p) {
-        if (p == null) return null;
-        if (p.lat == null || p.lng == null) return null;
+    private boolean validPosition(Position p) {
+        if (p == null) return false;
+        if (p.lat == null || p.lng == null) return false;
         return p.lat >= -90.0 && p.lat <= 90.0 &&
                p.lng >= -180.0 && p.lng <= 180.0;
     }

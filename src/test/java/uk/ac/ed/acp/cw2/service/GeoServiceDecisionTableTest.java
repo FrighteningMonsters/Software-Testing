@@ -14,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Specification-Based (Black-Box) Techniques: Decision Table Testing
- *
+ * <p>
  * This test class demonstrates Decision Table Testing for the isInRegion() method.
  * The method validates inputs and determines if a point lies within a polygon region.
- *
+ * <p>
  * CONDITIONS:
  *   C1: Position is valid (not null, valid lat/lng range)
  *   C2: Region is not null
@@ -27,13 +27,13 @@ import static org.junit.jupiter.api.Assertions.*;
  *   C6: Last vertex is valid
  *   C7: Polygon is closed (first vertex == last vertex)
  *   C8: Point location relative to polygon
- *
+ * <p>
  * ACTIONS:
- *   A1: Return NULL  (invalid input)
- *   A2: Return TRUE  (point inside or on boundary)
+ *   A1: Return NULL (invalid input)
+ *   A2: Return TRUE (point inside or on boundary)
  *   A3: Return FALSE (point outside)
- *
- * I made a table in Excel, it will be in the portfolio
+ * <p>
+ * I made a table in Excel, it will be in the portfolio (probably) //TODO table
  */
 public class GeoServiceDecisionTableTest {
 

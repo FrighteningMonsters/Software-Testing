@@ -24,7 +24,11 @@ public class DroneService {
      * @param state the cooling capability state to filter by
      * @return list of drone IDs matching the cooling state
      */
-    public List<String> findDronesWithCooling(boolean state) {
+    public List<String> findDronesWithCooling(Boolean state) {
+        if (state == null) {
+            return List.of();
+        }
+
         Drone[] drones = rest.getForObject(ilpEndpoint + "/drones", Drone[].class);
         if (drones == null) return List.of();
 
@@ -39,9 +43,13 @@ public class DroneService {
      * Retrieves a drone by its ID.
      *
      * @param id the drone ID to search for
-     * @return the drone with the specified ID, or null if not found
+     * @return the drone with the specified ID, or null if not found or id is invalid
      */
     public Drone getDroneById(String id) {
+        if (id == null || id.isEmpty()) {
+            return null;
+        }
+
         Drone[] drones = rest.getForObject(ilpEndpoint + "/drones", Drone[].class);
         if (drones == null || drones.length == 0) return null;
 

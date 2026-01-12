@@ -16,13 +16,36 @@ public class GeoService {
     };
 
     /**
+     * Validates if a position has valid latitude and longitude values.
+     *
+     * @param p the position to validate
+     * @return true if position is valid, false otherwise
+     */
+    private Boolean validPosition(Position p) {
+        if (p == null) return null;
+        if (p.lat == null || p.lng == null) return null;
+        return p.lat >= -90.0 && p.lat <= 90.0 &&
+               p.lng >= -180.0 && p.lng <= 180.0;
+    }
+
+    /**
      * Calculates the Euclidean distance between two positions.
      *
      * @param p1 the first position
      * @param p2 the second position
-     * @return the distance between the two positions
+     * @return the distance between the two positions, or null if positions are invalid
      */
-    public double calculateDistance(Position p1, Position p2) {
+    public Double calculateDistance(Position p1, Position p2) {
+        if (!validPosition(p1) || !validPosition(p2)) {
+            return null;
+        }
+        return calculateDistanceInternal(p1, p2);
+    }
+
+    /**
+     * Internal distance calculation without validation.
+     */
+    private double calculateDistanceInternal(Position p1, Position p2) {
         double dx = p1.lng - p2.lng;
         double dy = p1.lat - p2.lat;
         return Math.sqrt(dx * dx + dy * dy);
@@ -33,23 +56,47 @@ public class GeoService {
      *
      * @param p1 the first position
      * @param p2 the second position
-     * @return true if positions are close, false otherwise
+     * @return true if positions are close, false otherwise, or null if positions are invalid
      */
-    public boolean isCloseTo(Position p1, Position p2) {
-        if (p1 == null || p2 == null) return false;
+    public Boolean isCloseTo(Position p1, Position p2) {
+        if (!validPosition(p1) || !validPosition(p2)) {
+            return null;
+        }
+        return isCloseToInternal(p1, p2);
+    }
 
+    /**
+     * Internal proximity check without validation.
+     */
+    private boolean isCloseToInternal(Position p1, Position p2) {
         double threshold = 0.00015;
-        return calculateDistance(p1, p2) < threshold;
+        return calculateDistanceInternal(p1, p2) < threshold;
     }
 
     /**
      * Calculates the next position from a start position moving in the specified angle.
      *
      * @param start the starting position
-     * @param angle the direction angle in degrees
-     * @return the next position after moving 0.00015 units in the specified direction
+     * @param angle the direction angle in degrees (must be one of the 16 legal angles)
+     * @return the next position after moving 0.00015 units in the specified direction, or null if inputs are invalid
      */
-    public Position nextPosition(Position start, double angle) {
+    public Position nextPosition(Position start, Double angle) {
+        if (!validPosition(start) || angle == null) {
+            return null;
+        }
+
+        boolean isLegalAngle = Arrays.stream(ANGLES).anyMatch(a -> a == angle);
+        if (!isLegalAngle) {
+            return null;
+        }
+
+        return nextPositionInternal(start, angle);
+    }
+
+    /**
+     * Internal next position calculation without validation.
+     */
+    private Position nextPositionInternal(Position start, double angle) {
         double move = 0.00015;
         double rad = Math.toRadians(angle);
 
@@ -103,6 +150,43 @@ public class GeoService {
             p1 = p2;
         }
         return inside;
+    }
+
+    /**
+     * Checks if a position is inside a region with full validation.
+     *
+     * @param position the position to check
+     * @param region the region to check against
+     * @return true if position is inside the region, false if outside, or null if inputs are invalid
+     */
+    public Boolean isInRegion(Position position, Region region) {
+        if (!validPosition(position)) {
+            return null;
+        }
+
+        if (region == null || region.vertices == null) {
+            return null;
+        }
+
+        List<Position> vertices = region.vertices;
+        if (vertices.size() < 4) {
+            return null;
+        }
+
+        Position first = vertices.getFirst();
+        Position last = vertices.getLast();
+
+        if (!validPosition(first) || !validPosition(last)) {
+            return null;
+        }
+
+        // Check if polygon is closed
+        if (!(first.lng.doubleValue() == last.lng.doubleValue()) ||
+                !(first.lat.doubleValue() == last.lat.doubleValue())) {
+            return null;
+        }
+
+        return pointInPolygon(position, vertices);
     }
 
     /**
@@ -172,7 +256,7 @@ public class GeoService {
      * @return the estimated cost to reach the goal
      */
     private double heuristic(Position start, Position end) {
-        double distance = calculateDistance(start, end);
+        double distance = calculateDistanceInternal(start, end);
         double step = 0.00015;
         return distance / step;
     }
@@ -207,7 +291,7 @@ public class GeoService {
                 recents.removeFirst();
             }
 
-            if (isCloseTo(u.position, goal)) {
+            if (isCloseToInternal(u.position, goal)) {
                 return reconstruct(u);
             }
 
@@ -239,7 +323,7 @@ public class GeoService {
     private List<Node> neighbors(Node u) {
         List<Node> neighbors = new ArrayList<>(ANGLES.length);
         for (double angle : ANGLES) {
-            Position np = nextPosition(u.position, angle);
+            Position np = nextPositionInternal(u.position, angle);
             neighbors.add(new Node(np));
         }
         return neighbors;

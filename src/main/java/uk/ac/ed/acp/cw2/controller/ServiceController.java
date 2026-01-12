@@ -8,7 +8,6 @@ import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.service.DroneService;
 import uk.ac.ed.acp.cw2.service.GeoService;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -58,13 +57,11 @@ public class ServiceController {
      */
     @PostMapping("/distanceTo")
     public ResponseEntity<Double> distanceTo(@RequestBody DistanceRequest request) {
-        if (request == null ||
-                !validPosition(request.position1) ||
-                !validPosition(request.position2)) {
+        if (request == null) {
             return ResponseEntity.ok(null);
         }
 
-        double distance = geoService.calculateDistance(
+        Double distance = geoService.calculateDistance(
                 request.position1,
                 request.position2
         );
@@ -80,9 +77,7 @@ public class ServiceController {
      */
     @PostMapping("/isCloseTo")
     public ResponseEntity<Boolean> isCloseTo(@RequestBody DistanceRequest request) {
-        if (request == null ||
-                !validPosition(request.position1) ||
-                !validPosition(request.position2)) {
+        if (request == null) {
             return ResponseEntity.ok(null);
         }
 
@@ -101,20 +96,7 @@ public class ServiceController {
      */
     @PostMapping("/nextPosition")
     public ResponseEntity<Position> nextPosition(@RequestBody NextPositionRequest request) {
-        if (request == null ||
-                !validPosition(request.start) ||
-                request.angle == null) {
-            return ResponseEntity.ok(null);
-        }
-
-        double[] legal = {
-                0,22.5,45,67.5,90,112.5,135,157.5,
-                180,202.5,225,247.5,270,292.5,315,337.5
-        };
-
-        boolean ok = Arrays.stream(legal).anyMatch(a -> a == request.angle);
-
-        if (!ok) {
+        if (request == null) {
             return ResponseEntity.ok(null);
         }
 
@@ -130,31 +112,11 @@ public class ServiceController {
      */
     @PostMapping("/isInRegion")
     public ResponseEntity<Boolean> isInRegion(@RequestBody IsInRegionRequest request) {
-        if (request == null ||
-                !validPosition(request.position) ||
-                request.region == null ||
-                request.region.vertices == null) {
+        if (request == null) {
             return ResponseEntity.ok(null);
         }
 
-        java.util.List<Position> vertices = request.region.vertices;
-        if (vertices.size() < 4) {
-            return ResponseEntity.ok(null);
-        }
-
-        // check if polygon is closed
-        Position first = vertices.getFirst();
-        Position last = vertices.getLast();
-        if (!validPosition(first) || !validPosition(last)) {
-            return ResponseEntity.ok(null);
-        }
-
-        if (!(first.lng.doubleValue() == last.lng.doubleValue()) ||
-                !(first.lat.doubleValue() == last.lat.doubleValue())) {
-            return ResponseEntity.ok(null);
-        }
-
-        boolean inside = geoService.pointInPolygon(request.position, vertices);
+        Boolean inside = geoService.isInRegion(request.position, request.region);
         return ResponseEntity.ok(inside);
     }
 
@@ -174,7 +136,7 @@ public class ServiceController {
      * Retrieves the details of a drone by its ID.
      *
      * @param id the drone ID
-     * @return the drone details, or 404 status if not found
+     * @return the drone details, or null if not found
      */
     @GetMapping("/droneDetails/{id}")
     public ResponseEntity<Drone> droneDetails(@PathVariable String id) {
@@ -245,18 +207,5 @@ public class ServiceController {
     ) {
         String geojson = droneService.calcDeliveryPathAsGeoJson(recs);
         return ResponseEntity.ok(geojson);
-    }
-
-    /**
-     * Validates if a position has valid latitude and longitude values.
-     *
-     * @param p the position to validate
-     * @return true if position is valid, false otherwise
-     */
-    private boolean validPosition(Position p) {
-        if (p == null) return false;
-        if (p.lat == null || p.lng == null) return false;
-        return p.lat >= -90.0 && p.lat <= 90.0 &&
-               p.lng >= -180.0 && p.lng <= 180.0;
     }
 }

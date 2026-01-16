@@ -39,13 +39,6 @@ public class GeoService {
         if (!validPosition(p1) || !validPosition(p2)) {
             return null;
         }
-        return calculateDistanceInternal(p1, p2);
-    }
-
-    /**
-     * Internal distance calculation without validation.
-     */
-    private double calculateDistanceInternal(Position p1, Position p2) {
         double dx = p1.lng - p2.lng;
         double dy = p1.lat - p2.lat;
         return Math.sqrt(dx * dx + dy * dy);
@@ -62,19 +55,13 @@ public class GeoService {
         if (!validPosition(p1) || !validPosition(p2)) {
             return null;
         }
-        return isCloseToInternal(p1, p2);
-    }
-
-    /**
-     * Internal proximity check without validation.
-     */
-    private boolean isCloseToInternal(Position p1, Position p2) {
         double threshold = 0.00015;
-        return calculateDistanceInternal(p1, p2) < threshold;
+        return calculateDistance(p1, p2) < threshold;
     }
 
     /**
      * Calculates the next position from a start position moving in the specified angle.
+     * Wraps longitude around at ±180, clamps latitude at ±90.
      *
      * @param start the starting position
      * @param angle the direction angle in degrees (must be one of the 16 legal angles)
@@ -90,19 +77,27 @@ public class GeoService {
             return null;
         }
 
-        return nextPositionInternal(start, angle);
-    }
-
-    /**
-     * Internal next position calculation without validation.
-     */
-    private Position nextPositionInternal(Position start, double angle) {
         double move = 0.00015;
         double rad = Math.toRadians(angle);
 
+        double newLng = start.lng + Math.cos(rad) * move;
+        double newLat = start.lat + Math.sin(rad) * move;
+
+        // Latitude out of bounds - cannot move past poles
+        if (newLat > 90.0 || newLat < -90.0) {
+            return null;
+        }
+
+        // Wrap longitude: if > 180, wrap to negative; if < -180, wrap to positive
+        if (newLng > 180.0) {
+            newLng = -180.0 + (newLng - 180.0);
+        } else if (newLng < -180.0) {
+            newLng = 180.0 + (newLng + 180.0);
+        }
+
         Position p = new Position();
-        p.lng = start.lng + Math.cos(rad) * move;
-        p.lat = start.lat + Math.sin(rad) * move;
+        p.lng = newLng;
+        p.lat = newLat;
         return p;
     }
 
@@ -256,9 +251,9 @@ public class GeoService {
      * @return the estimated cost to reach the goal
      */
     private double heuristic(Position start, Position end) {
-        double distance = calculateDistanceInternal(start, end);
-        double step = 0.00015;
-        return distance / step;
+        Double distance = calculateDistance(start, end);
+        if (distance == null) return Double.MAX_VALUE;
+        return distance / STEP;
     }
 
     /**
@@ -291,7 +286,7 @@ public class GeoService {
                 recents.removeFirst();
             }
 
-            if (isCloseToInternal(u.position, goal)) {
+            if (Boolean.TRUE.equals(isCloseTo(u.position, goal))) {
                 return reconstruct(u);
             }
 
@@ -323,8 +318,10 @@ public class GeoService {
     private List<Node> neighbors(Node u) {
         List<Node> neighbors = new ArrayList<>(ANGLES.length);
         for (double angle : ANGLES) {
-            Position np = nextPositionInternal(u.position, angle);
-            neighbors.add(new Node(np));
+            Position np = nextPosition(u.position, angle);
+            if (np != null) {
+                neighbors.add(new Node(np));
+            }
         }
         return neighbors;
     }

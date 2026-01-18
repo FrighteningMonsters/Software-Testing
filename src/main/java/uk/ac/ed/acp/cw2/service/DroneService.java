@@ -161,10 +161,28 @@ public class DroneService {
 
         if (drones == null) return List.of();
 
+        List<QueryAttribute> valid = queries.stream()
+                .filter(this::isValidQuery)
+                .toList();
+
         return Arrays.stream(drones)
-                .filter(drone -> matchesAll(drone, queries))
+                .filter(drone -> matchesAll(drone, valid))
                 .map(drone -> drone.id)
                 .toList();
+    }
+
+    /**
+     * Validates a query attribute for basic structural correctness.
+     * Checks that all required fields are present and non-blank.
+     * Value type validation is handled in matchQueryAttribute based on attribute type.
+     *
+     * @param query the query attribute to validate
+     * @return true if the query has valid structure
+     */
+    private boolean isValidQuery(QueryAttribute query) {
+        if (query == null) return false;
+        if (query.attribute == null || query.operator == null || query.value == null) return false;
+        return !query.attribute.isBlank() && !query.operator.isBlank() && !query.value.isBlank();
     }
 
     /**

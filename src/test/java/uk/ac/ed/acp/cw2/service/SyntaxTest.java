@@ -122,7 +122,7 @@ public class SyntaxTest {
                     createQuery(invalidAttribute, "=", "true")
             ));
 
-            // Invalid attribute → matchQueryAttribute returns false → no drones match
+            // Invalid attribute -> matchQueryAttribute returns false -> no drones match
             assertTrue(result.isEmpty(),
                     "Invalid attribute '" + invalidAttribute + "' should cause no match");
         }
@@ -147,7 +147,7 @@ public class SyntaxTest {
             ));
 
             // Blank values are filtered out by isBlank() check
-            // Empty valid list → matchesAll returns true → all drones returned
+            // Empty valid list -> matchesAll returns true -> all drones returned
             assertTrue(result.contains("D1"),
                     "Blank attribute should be filtered out, returning all drones");
         }
@@ -202,7 +202,7 @@ public class SyntaxTest {
                     createQuery("cooling", invalidOperator, "true")
             ));
 
-            // Invalid operator → comparison method returns false → no drones match
+            // Invalid operator -> comparison method returns false -> no drones match
             assertTrue(result.isEmpty(),
                     "Invalid operator '" + invalidOperator + "' should cause no match");
         }
@@ -225,7 +225,7 @@ public class SyntaxTest {
                     createQuery("cooling", blankOperator, "true")
             ));
 
-            // Blank operators filtered out → empty valid list → all drones returned
+            // Blank operators filtered out -> empty valid list -> all drones returned
             assertTrue(result.contains("D1"),
                     "Blank operator should be filtered out, returning all drones");
         }
@@ -261,14 +261,14 @@ public class SyntaxTest {
                     createQuery("capacity", "=", blankValue)
             ));
 
-            // Blank values filtered out → empty valid list → all drones returned
+            // Blank values filtered out -> empty valid list -> all drones returned
             assertTrue(result.contains("D1"),
                     "Blank value should be filtered out, returning all drones");
         }
 
         /**
          * Invalid numeric formats that cannot be parsed by Double.parseDouble().
-         * These pass to matchQueryAttribute but parsing fails → returns false → no match.
+         * These pass to matchQueryAttribute but parsing fails -> returns false -> no match.
          */
         @ParameterizedTest(name = "Unparseable numeric value: \"{0}\"")
         @ValueSource(strings = {
@@ -294,7 +294,7 @@ public class SyntaxTest {
                     createQuery("capacity", "=", unparseableValue)
             ));
 
-            // parseDouble fails → matchQueryAttribute returns false → no match
+            // parseDouble fails -> matchQueryAttribute returns false -> no match
             assertTrue(result.isEmpty(),
                     "Unparseable value '" + unparseableValue + "' should cause no match");
         }

@@ -33,7 +33,8 @@ import static org.junit.jupiter.api.Assertions.*;
  *   A2: Return TRUE (point inside or on boundary)
  *   A3: Return FALSE (point outside)
  * <p>
- * I made a table in Excel, it will be in the portfolio (probably) //TODO table
+ * I made a table in Excel, it will be in the portfolio (probably)
+ * I would just put it in text form like the others but it's kinda big
  */
 public class GeoServiceDecisionTableTest {
 

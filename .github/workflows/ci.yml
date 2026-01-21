@@ -21,6 +21,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Clean build
+        run: mvn clean
+
+
       - name: Build project
         run: mvn compile -q --batch-mode
 

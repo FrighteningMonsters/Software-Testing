@@ -22,10 +22,13 @@ jobs:
           cache: maven
 
       - name: Build project
-        run: mvn compile -q
+        run: mvn compile -q --batch-mode
 
-      - name: Run tests, coverage and mutation tests
+      - name: Run tests and coverage
         run: mvn verify -DskipTests=false --batch-mode
+
+      - name: Run mutation tests (PIT)
+        run: mvn org.pitest:pitest-maven:mutationCoverage --batch-mode
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -46,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pit-mutation-report
-          path: target/pit-reports/
+          path: target/pit-reports/**
           retention-days: 7
 
       - name: Display coverage summary
@@ -54,4 +57,4 @@ jobs:
           echo "JaCoCo Coverage Summary"
           grep -o 'Total[^<]*' target/site/jacoco/index.html | head -5 || echo "Coverage report generated"
           echo ""
-          echo "PIT mutation report location: target/pit-reports/index.html"
+          echo "PIT mutation report generated under target/pit-reports/"

@@ -217,18 +217,18 @@ public class GeoService {
      * @return true if the move is valid, false if it intersects a forbidden region
      */
     public boolean isValidMove(Position start, Position end, List<Region> regions) {
-        // Check the endpoint first (common case: moving into a forbidden region)
+        final int NUM_POINTS = 100;
+
         for (Region r : regions) {
             if (r.vertices == null || r.vertices.size() < 3) continue;
+
+            // 1. Check the endpoint first (fast exit for the most common failure)
             if (pointInPolygon(end, r.vertices)) {
                 return false;
             }
-        }
 
-        final int NUM_POINTS = 100;
-        for (Region r : regions) {
-            // Check a bunch of points along the segment
-            for (int i = 1; i <= NUM_POINTS; i++) {
+            // 2. Check points along the segment
+            for (int i = 1; i < NUM_POINTS; i++) { // Changed to < NUM_POINTS since endpoint is already checked
                 double t = i / (double) NUM_POINTS;
 
                 Position sample = new Position();

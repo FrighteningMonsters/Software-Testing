@@ -693,8 +693,11 @@ public class DroneService {
         Position current = sp.location;
 
         for (MedDispatchRec rec : ordered) {
-            List<Position> leg = geoService.findPath(current, rec.delivery, restrictedAreas);
-            if (leg == null || leg.isEmpty()) return dronePath;
+            List<Position> legResult = geoService.findPath(current, rec.delivery, restrictedAreas);
+            if (legResult == null || legResult.isEmpty()) return dronePath;
+
+            // Create a mutable copy to allow adding the hover position
+            List<Position> leg = new ArrayList<>(legResult);
 
             // Hover at last position
             Position last = leg.getLast();
@@ -714,8 +717,11 @@ public class DroneService {
 
 
         // Return to service point
-        List<Position> returnLeg = geoService.findPath(current, sp.location, restrictedAreas);
-        if (returnLeg == null || returnLeg.isEmpty()) return dronePath;
+        List<Position> returnLegResult = geoService.findPath(current, sp.location, restrictedAreas);
+        if (returnLegResult == null || returnLegResult.isEmpty()) return dronePath;
+
+        // Create a mutable copy
+        List<Position> returnLeg = new ArrayList<>(returnLegResult);
 
         Position rLast = returnLeg.getLast();
         Position rHover = new Position(rLast.lng, rLast.lat);
